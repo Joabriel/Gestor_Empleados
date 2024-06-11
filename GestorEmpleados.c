@@ -110,7 +110,7 @@ void CasoB(int y){
 	printf("%s",usaremp[y].direccion);
 	printf("%f",usaremp[y].sueldo);
 }
-
+//3ra versión.
 int main(){
 	IngresodeDatos();
 	getchar();
