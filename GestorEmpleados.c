@@ -1,5 +1,4 @@
 #include <stdio.h> 
-#include <string.h>
 #define CANTIDAD 2
 
 struct empleados{
@@ -10,6 +9,7 @@ struct empleados{
 };
 
 enum opcs{
+	e='e',
 	l='l',
 	a='a',
 	b='b',
@@ -19,57 +19,119 @@ enum opcs2{
 	num=1
 };*/
 
-void IngresodeDatos(){  //Borrar en cuanto se agregue archivos.
-	struct empleados usaremp[CANTIDAD];
-	//crear "boton" para detener la iteraccion.
-		for(int i=0; i<CANTIDAD; i++){
-		printf("\nIngrese NUMERO de empleado:");
-		scanf("%i",&usaremp[i].empNum);
-		printf("Ingrese NOMBRE del empleado:");
-		scanf("%s",&usaremp[i].apeynom);
-		getchar();
-		printf("Ingrese DIRECCION del empleado:");
-		scanf("%s",usaremp[i].direccion);
-		getchar();
-		printf("Ingrese SUELDO del empleado:");
-		scanf("%f",&usaremp[i].sueldo);
-	}
-}
-
+/*
 //Prototipos de funci�n.
 void CasoL();
 void CasoA();
 void CasoB();
+*/
 
 void Seleccion(char selec){
+	FILE *ArchivoenUso;
+	struct empleados emp[CANTIDAD];
     switch(selec){
-	case l:
-        printf("\n[todos]: 'todos'\n");
-        printf("[num]: ingresar numero de empleado:\n");
-		int selec2;
-		scanf("%i",&selec2);
-		CasoL(selec2);
-        break;
+	case e: 
+	ArchivoenUso = fopen("empleados.txt","wb");
+	if(ArchivoenUso == NULL){
+		perror("error al abrir archivo");
+		//return 1;
+	}
+
+	emp->empNum = 1;
+	printf("\nIngrese información sobre el empleado: %i",emp->empNum);
+	fputs("               ----Datos de empleados----",ArchivoenUso);
+	fprintf(ArchivoenUso, "\nEmpleado N°:		%i\n",emp->empNum);
+	printf("\n\nNombre y Apellido: ");
+	scanf("%s",&emp->apeynom);
+	fprintf(ArchivoenUso, "Nombre y Apellido:		%s\n", emp->apeynom);
+	getchar();
+
+	printf("\nDirección: ");
+	scanf("%s",&emp->direccion);
+	fprintf(ArchivoenUso, "Dirección:		%s\n", emp->direccion);
+	getchar();
+
+	printf("\nSueldo: ");
+	scanf("%d",&emp->sueldo);
+	fprintf(ArchivoenUso, "Sueldo:			%d\n", emp->sueldo);
+	getchar();
+
+
+	break;
+	case l:	
+	/*printf("\n[todos]: 'todos'\n");
+	printf("[num]: ingresar numero de empleado:\n");
+	int selec2;
+	scanf("%i",&selec2);
+	CasoL(selec2);*/
+	getchar();
+	ArchivoenUso = fopen("empleados.txt", "rb");
+	if(ArchivoenUso == NULL){
+		printf("Error: Archivo Vacio.");
+	}
+	char caracter;
+	while(feof(ArchivoenUso) == 0){
+		caracter = fgetc(ArchivoenUso);
+		printf("%c",caracter);
+	};
+	break;
+/*
 	case a:
 		getchar();
-        printf("\nIngrese numero de empleado:\n");
+		ArchivoenUso = fopen("empleados.dat","rb")
+		if(ArchivoenUso == NULL){
+			perror("Error en la apertura del archivo");
+			return 1;
+		}
+		//.
+		printf("\nIngrese número de empleado para ACTUALIZAR información:\n");
 		int x;
 		scanf("%i",&x);
-		CasoA(x);
+
+		bool numeroEncontrado = false;
+		int capNum;
+
+		while(feof(ArchivoenUso) == 0 || numeroEncontrado == true){
+			fscanf(ArchivoenUso, "%i", &capNum);
+			if(capNum == x){
+				numeroEncontrado = true;
+				printf("Que información desea actualizar de: %i?\n",emp.empNum);
+				printf("0=[Nombre]  1=[Dirección]  2=[Sueldo]");
+
+				switch(x){
+					case 0:
+					scanf("%s",&emp[x].empNum);
+
+					break;
+					case 1: 
+					scanf("%s",&emp[x].direccion);
+					break;
+					case 2: 
+					scanf("%f",&emp[x].sueldo);
+				}
+			}
+		}
+
+
+
+		//CasoA(x);
         break;
 	case b:
 		getchar();
+		
         printf("\ningrese numero de empleado:\n");
 		int y;
 		scanf("%i",&y);
-		CasoB(y);
+		//CasoB(y);
+
 		break;
 	default:
-		printf("\nError: Operaci�n Inv�lida.\n");
-		break;
+		perror("\nError: Operaci�n Inv�lida.\n");
+		break;*/
     }
 }
 
+/*
 void CasoL(int selec2){
 	struct empleados usaremp[CANTIDAD];
 	switch(selec2){
@@ -96,30 +158,21 @@ void CasoL(int selec2){
 }
 	
 void CasoA(int x){
-	struct empleados usaremp[CANTIDAD];
-	printf("%s",usaremp[x].apeynom);
-	printf("%i",usaremp[x].empNum);
-	printf("%s",usaremp[x].direccion);
-	printf("%f",usaremp[x].sueldo);
 }
 	
 void CasoB(int y){
-	struct empleados usaremp[CANTIDAD];
-	printf("%s",usaremp[y].apeynom);
-	printf("%i",usaremp[y].empNum);
-	printf("%s",usaremp[y].direccion);
-	printf("%f",usaremp[y].sueldo);
 }
+*/
 //3ra versión.
 int main(){
-	IngresodeDatos();
-	getchar();
+	//getchar();
     printf("\n    ----Gestor de Empleados----\n\n");
     printf("Opciones:\n");
+	printf("[ee]: 'escribir'");
     printf("[ll]:'leer' ");
     printf("[aa]:'actualizar' ");
     printf("[bb]:'borrar'\n\n");
-	//Paso 1: menú, seleccion de opción y llevar a MostrarSeleccion1();.
+	//Paso 1: menú, seleccion de opción y llevar a Seleccion();.
 	char selec;
     scanf("%c",&selec);
     Seleccion(selec);
