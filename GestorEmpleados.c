@@ -10,40 +10,49 @@ typedef struct{
     double sueldo;
 }Empleados;
 
-enum opcs{
-	a='a',
-	l='l',
-	b='b',
-	//(Actualizar).
-};
-
 int obtenerUltimoId();
 void agregarDato();
 void leerDato();
+int borrarDatos();
 	
 	int main(){
+		int selec, id;
+		do{
 		printf("\n    ----Gestor de Empleados----\n");
 		printf("Nombre del archivo: %s\n\n",ARCHIVONOMBRE);	
 		printf("Opciones:\n");
-		printf("[ll]:'leer' ");
-		printf("[aa]:'Agregar Empleado.' \n\n");
-		//printf("[bb]:'borrar'\n");
+		printf("[1]:'leer.' ");
+		printf("[2]:'Agregar Empleado.' ");
+		printf("[3]:'borrar' ");
+		printf("[5]:'Salir.'\n\n");
 		
-		char selec;
-		scanf("%c",&selec);
-	
-		switch(selec){
-		case a:
-			agregarDato(ARCHIVONOMBRE);
-			break;  
-		case l: 
-			leerDato();
-			break;
-		default: 
-			printf("operación inválida.");
-			break;
-		}
+		scanf("%i",&selec);
+			switch(selec){
+			case 1:
+				getchar();
+				leerDato();
+				getchar();
+				break;  
+			case 2: 
+				getchar();
+				agregarDato(ARCHIVONOMBRE);
+				break;
+			case 3:
+				printf("Ingrese ID: ");
+				scanf("%i",&id);
+				borrarDatos(id);
+				break;
+			case 5:
+				printf("-Salida.");
+				break;
+			default: 
+				printf("operación inválida.");
+				break;	
+			}
+			system("cls");
+		} while(selec != 5);
 
+		
 	getchar(); //Evitar que el programa se cierre solo.
 	return 0;	
 }
@@ -53,15 +62,12 @@ void leerDato();
 		if(VerNum == NULL){
 			fprintf(stderr,"No se pudo abrir el archivo para ver el ultimo número.");
 			return 0;
-		}
-		
+		}		
 		Empleados emp;
 		int ultimoID = 0;
-		
 		while(fread(&emp,sizeof(Empleados),1,VerNum)==1){
 				ultimoID = emp.empNum;
 			}
-			
 		fclose(VerNum);
 		return ultimoID;
 	}
@@ -70,7 +76,6 @@ void leerDato();
 		FILE *ArchivoenUso = fopen(archivonombre,"ab+");
 		if(ArchivoenUso == NULL){
 			fprintf(stderr, "No se pudo abrir el archivo para agregar datos\n");
-			exit(0);
 		}
 		
 		Empleados addEmp;
@@ -81,7 +86,7 @@ void leerDato();
 		
 		if(addEmp.empNum > CANT_ADMIT){
 			printf("No se puede agregar mas datos.");
-			exit(0);
+			//Como salgo sin tener que cerrar para evitar que se siga escribiendo?
 		}
 		
 			printf("\nEmpleado N°: %i\n",addEmp.empNum);
@@ -122,6 +127,45 @@ void leerDato();
 			printf("\n\n-Fin de lectura de datos.");
 			fclose(ArchivoenUso);
 		}
+			
+		
+		int borrarDatos(int id){
+			FILE *ArchivoenUso = fopen(ARCHIVONOMBRE,"rb");
+			if(ArchivoenUso == NULL){
+				fprintf(stderr,"No se puede abrir para buscar datos.");
+				exit(1);
+			}
+			
+			FILE *ArchivoTemp = fopen("temp.dat","wb");
+			if(ArchivoTemp == NULL){
+				printf("No se pudo crear archivo temporal.");
+				exit(1);
+			}
+			Empleados borrarEmp;
+			int encontrado = 0;
+			while(fread(&borrarEmp,sizeof(Empleados),1,ArchivoenUso)==1){
+				if(borrarEmp.empNum==id){
+					encontrado = 1;
+				}else{
+						fwrite(&borrarEmp,sizeof(Empleados),1,ArchivoTemp);
+					}
+				}
+			/*Cierro antes de la asignación de los archivos para que
+			no se cancele el traspaso de información.*/
+			fclose(ArchivoenUso);
+			fclose(ArchivoTemp);
+			if(encontrado == 1){
+				remove(ARCHIVONOMBRE);
+				rename("temp.dat",ARCHIVONOMBRE);
+				printf("-\n-empleado N°: %i eliminado correctamente.",id);
+			}else{
+				remove("temp.dat");
+				fprintf(stderr,"\n-No se pudo eliminar a %i",id);
+			}
+			return 0;
+		}
+			
+			
 	
 	
 	
