@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>  
+#include <stdlib.h> 
+#include <unistd.h> 
 #define CANT_ADMIT 10
 #define ARCHIVONOMBRE "empleados.dat"
 
@@ -11,12 +12,13 @@ typedef struct{
 }Empleados;
 
 int obtenerUltimoId();
-void agregarDato();
+int agregarDato();
+int errores(); //Pertenece a la de arriba.
 void leerDato();
 int borrarDatos();
 	
 	int main(){
-		int selec, id;
+		int selec, id, errorSalida=0;
 		do{
 		printf("\n    ----Gestor de Empleados----\n");
 		printf("Nombre del archivo: %s\n\n",ARCHIVONOMBRE);	
@@ -34,13 +36,16 @@ int borrarDatos();
 				getchar();
 				break;  
 			case 2: 
+				agregarDato(ARCHIVONOMBRE,errorSalida);
 				getchar();
-				agregarDato(ARCHIVONOMBRE);
+				sleep(1);
 				break;
 			case 3:
 				printf("Ingrese ID: ");
 				scanf("%i",&id);
 				borrarDatos(id);
+				getchar();
+				sleep(1);
 				break;
 			case 5:
 				printf("-Salida.");
@@ -71,11 +76,14 @@ int borrarDatos();
 		fclose(VerNum);
 		return ultimoID;
 	}
+	
 		
-	void agregarDato(const char *archivonombre){
+	int agregarDato(const char *archivonombre,int errorSalida){
 		FILE *ArchivoenUso = fopen(archivonombre,"ab+");
 		if(ArchivoenUso == NULL){
-			fprintf(stderr, "No se pudo abrir el archivo para agregar datos\n");
+			fprintf(stderr,"No se puede abrir archivo para agregar.");
+			errorSalida=1;
+			return errorSalida;
 		}
 		
 		Empleados addEmp;
@@ -85,8 +93,9 @@ int borrarDatos();
 		addEmp.empNum = ultimoid +1;
 		
 		if(addEmp.empNum > CANT_ADMIT){
-			printf("No se puede agregar mas datos.");
-			//Como salgo sin tener que cerrar para evitar que se siga escribiendo?
+			printf("-No se puede agregar más datos.");
+			errorSalida=2;
+			return errorSalida;
 		}
 		
 			printf("\nEmpleado N°: %i\n",addEmp.empNum);
@@ -100,13 +109,15 @@ int borrarDatos();
 			
 			printf("Sueldo: ");
 			scanf("%d",addEmp.sueldo);
-			getchar();	
+			getchar();
+			getchar(); //Evita que se lea "operación inválida" luego de usar caso 2.
 
-		printf("\n-Fin de petición de datos.");
+		//printf("\n-Fin de petición de datos.");
 		
 		fwrite(&addEmp,sizeof(Empleados),1,ArchivoenUso);
 		
 		fclose(ArchivoenUso);
+		return 0;
 	}
 		
 		void leerDato(){
