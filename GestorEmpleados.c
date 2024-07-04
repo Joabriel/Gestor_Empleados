@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <unistd.h> 
+#include <string.h>
 #define CANT_ADMIT 10
 #define ARCHIVONOMBRE "empleados.dat"
 
@@ -16,6 +17,7 @@ int agregarDato();
 int errores(); //Pertenece a la de arriba.
 void leerDato();
 int borrarDatos();
+int actualizarDatos();
 	
 	int main(){
 		int selec, id, errorSalida=0;
@@ -26,6 +28,7 @@ int borrarDatos();
 		printf("[1]:'leer.' ");
 		printf("[2]:'Agregar Empleado.' ");
 		printf("[3]:'borrar' ");
+		printf("[4]:'Actualizar.' ");
 		printf("[5]:'Salir.'\n\n");
 		
 		scanf("%i",&selec);
@@ -36,7 +39,7 @@ int borrarDatos();
 				getchar();
 				break;  
 			case 2: 
-				agregarDato(ARCHIVONOMBRE,errorSalida);
+				agregarDato(ARCHIVONOMBRE,&errorSalida);
 				getchar();
 				sleep(1);
 				break;
@@ -46,6 +49,16 @@ int borrarDatos();
 				borrarDatos(id);
 				getchar();
 				sleep(1);
+				break;
+			case 4:
+				printf("Ingrese ID para actualizar: ");
+				scanf("%i",&id);
+				actualizarDatos(ARCHIVONOMBRE,id);
+				if(errorSalida == 1){
+					fprintf(stderr,"No se puede abrir el archivo para actualizar datos.\n");
+				}
+				getchar();
+				//getchar();
 				break;
 			case 5:
 				printf("-Salida.");
@@ -78,12 +91,12 @@ int borrarDatos();
 	}
 	
 		
-	int agregarDato(const char *archivonombre,int errorSalida){
+	int agregarDato(const char *archivonombre,int *errorSalida){
 		FILE *ArchivoenUso = fopen(archivonombre,"ab+");
 		if(ArchivoenUso == NULL){
 			fprintf(stderr,"No se puede abrir archivo para agregar.");
-			errorSalida=1;
-			return errorSalida;
+			*errorSalida=1;
+			return *errorSalida;
 		}
 		
 		Empleados addEmp;
@@ -94,25 +107,23 @@ int borrarDatos();
 		
 		if(addEmp.empNum > CANT_ADMIT){
 			printf("-No se puede agregar más datos.");
-			errorSalida=2;
-			return errorSalida;
+			*errorSalida=2;
+			return *errorSalida;
 		}
 		
-			printf("\nEmpleado N°: %i\n",addEmp.empNum);
-			printf("Nombre_Apellido: ");
-			scanf("%s",&addEmp.apeynom);
-			getchar();
-			
-			printf("Dirección: ");
-			scanf("%s",&addEmp.direccion);
-			getchar();
-			
-			printf("Sueldo: ");
-			scanf("%d",addEmp.sueldo);
-			getchar();
-			getchar(); //Evita que se lea "operación inválida" luego de usar caso 2.
-
-		//printf("\n-Fin de petición de datos.");
+		printf("\nEmpleado N°: %d\n", addEmp.empNum);
+		getchar();
+		printf("Nombre y Apellido: ");
+		fgets(addEmp.apeynom, sizeof(addEmp.apeynom), stdin); // Evitar desbordamiento en el buffer.
+		addEmp.apeynom[strcspn(addEmp.apeynom, "\n")] = 0;  // Eliminar el carácter de nueva línea, acompaña a fgets.
+		fflush(stdin);
+		printf("Dirección: ");
+		fgets(addEmp.direccion, sizeof(addEmp.direccion), stdin); 
+		addEmp.direccion[strcspn(addEmp.direccion, "\n")] = 0;
+		
+		printf("Sueldo: ");
+		scanf("%lf", &addEmp.sueldo);
+		//getchar(); // Consumir el carácter de nueva línea
 		
 		fwrite(&addEmp,sizeof(Empleados),1,ArchivoenUso);
 		
@@ -130,10 +141,10 @@ int borrarDatos();
 			Empleados leerEmp;
 			while(fread(&leerEmp,sizeof(Empleados),1,ArchivoenUso)==1){
 				printf("___________________");
-				printf("\nEmpleado N°: [ %i ]\n",leerEmp.empNum);
+				printf("\nEmpleado N°: [ %d ]\n",leerEmp.empNum);
 				printf("Nombre/Apellido: [ %s ]\n",leerEmp.apeynom);
 				printf("Dirección: [ %s ]\n",leerEmp.direccion);
-				printf("Sueldo: [ %f ]\n",leerEmp.sueldo);
+				printf("Sueldo: [ %.2f ]\n",leerEmp.sueldo);
 			}
 			printf("\n\n-Fin de lectura de datos.");
 			fclose(ArchivoenUso);
@@ -176,6 +187,58 @@ int borrarDatos();
 			return 0;
 		}
 			
+			int actualizarDatos(const char *archivonombre, int id, int *errorSalida) {
+				FILE *ArchivoenUso = fopen(archivonombre, "rb+");
+				if (ArchivoenUso == NULL) {
+					*errorSalida = 1;
+					return *errorSalida;
+				}
+				
+				Empleados emp;
+				int encontrado = 0;
+				
+				while (fread(&emp, sizeof(Empleados), 1, ArchivoenUso) == 1) {
+					if (emp.empNum == id) {
+						encontrado = 1;
+						
+						printf("Actualizando datos del empleado con ID %d:\n", id);
+						printf("Nombre/Apellido actual: %s\n", emp.apeynom);
+						printf("Nuevo Nombre/Apellido: ");
+						getchar();
+						fgets(emp.apeynom, sizeof(emp.apeynom), stdin);
+						emp.apeynom[strcspn(emp.apeynom, "\n")] = 0;
+						
+						printf("Dirección actual: %s\n", emp.direccion);
+						printf("Nueva Dirección: ");
+						fgets(emp.direccion, sizeof(emp.direccion), stdin);
+						emp.direccion[strcspn(emp.direccion, "\n")] = 0;
+						
+						printf("Sueldo actual: %.2f\n", emp.sueldo);
+						printf("Nuevo Sueldo: ");
+						scanf("%lf", &emp.sueldo);
+						getchar();
+						
+						/*debido a que fread posiciona al cursor en el siguiente registro luego de leer
+						y Se necesita sobreescribir el ultimo registro leido (que es igual a "id"), posicionamos al cursor en su
+						anterior posición.*/
+						fseek(ArchivoenUso, -sizeof(Empleados), SEEK_CUR); //Se desplaza desde la posición, un registro hacia atras.
+						fwrite(&emp, sizeof(Empleados), 1, ArchivoenUso);
+						break;
+					}
+				}
+				
+				fclose(ArchivoenUso);
+				
+				if (encontrado != 1) {
+					printf("-No se encontró un registro con el ID %d\n", id);
+					return 2;
+				} else {
+					printf("-Datos actualizados correctamente.\n");
+					return 0;
+				}
+			}
+				
+
 			
 	
 	
